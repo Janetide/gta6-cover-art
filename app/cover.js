@@ -1,8 +1,8 @@
 // Vice Sunset Cover Studio — cover renderer.
-// Draws a multi-panel GTA-poster-style cover onto a canvas from plain state:
-// layout, grade, title, subtitle and one photo per panel. Every decoration
-// (sun, skyline, palms, birds) is drawn procedurally in code; nothing here
-// loads Rockstar artwork, logos or fonts.
+// Paints a multi-panel, GTA-poster-style cover onto a canvas from plain
+// state: layout, grade, title, subtitle and one photo per panel. Every
+// decoration (sun, skyline, palms, birds) is drawn procedurally in code;
+// nothing here loads Rockstar artwork, logos or fonts.
 
 'use strict';
 
@@ -37,15 +37,16 @@ const SKIES = {
   halftone: ['#1a0533', '#e63b7a', '#ffb347', '#fff176', '#ff5e62'],
 };
 
-/** Deterministic pseudo-random from an integer seed (no Math.random). */
+/** Deterministic pseudo-random number from an integer seed (no Math.random). */
 function seeded(index, salt) {
   const x = Math.sin(index * 127.1 + salt * 311.7) * 43758.5453;
   return x - Math.floor(x);
 }
 
 /**
- * Panel shapes for a layout, as polygons in cover space plus the photo's
- * fit rectangle. Returns [{ poly: [[x, y], ...], rect: {x, y, w, h} }, ...].
+ * Panel shapes for a layout: polygons in cover space plus the rectangle
+ * the photo is fitted into. Returns
+ * [{ poly: [[x, y], ...], rect: {x, y, w, h} }, ...].
  */
 export function panelShapes(layout, W, H) {
   const g = Math.max(6, Math.round(W * 0.012)); // gutter / border width
@@ -74,7 +75,7 @@ export function panelShapes(layout, W, H) {
   if (layout === 'full') {
     return [{ poly: [[0, 0], [W, 0], [W, H], [0, H]], rect: { x: 0, y: 0, w: W, h: H } }];
   }
-  // diagonal: one tall slanted panel left, two stacked panels right.
+  // diagonal: one tall slanted panel on the left, two stacked panels right.
   const xTop = W * 0.6;
   const xBot = W * 0.44;
   const yMidR = H * 0.46;
@@ -106,7 +107,7 @@ function drawSky(ctx, W, H, grade) {
   ctx.globalAlpha = 1;
 }
 
-/** Scanline sun: a striped disc drawn on an offscreen canvas, then stamped. */
+/** Scanline sun: a striped disc drawn offscreen, then stamped in place. */
 function drawSun(ctx, W, H, grade) {
   const sky = SKIES[grade] || SKIES.sunset;
   const r = Math.min(W, H) * 0.21;
@@ -172,7 +173,7 @@ function drawSkyline(ctx, W, H, grade) {
   ctx.globalAlpha = 1;
 }
 
-/** One palm silhouette: curved trunk + drooping fronds. */
+/** One palm silhouette: a curved trunk with drooping fronds. */
 function drawPalm(ctx, x, y, s, lean, flip) {
   ctx.save();
   ctx.translate(x, y);
@@ -311,7 +312,7 @@ function drawPanelPhoto(ctx, panel, shape, grade) {
   ctx.restore();
 }
 
-/** White frame + thin dark keyline around each panel polygon. */
+/** White frame plus a thin dark keyline around each panel polygon. */
 function strokePanelFrame(ctx, shape, W) {
   ctx.save();
   ctx.beginPath();
@@ -344,7 +345,7 @@ function wrapTitle(ctx, title, maxWidth) {
   return lines.slice(0, 3);
 }
 
-/** Big condensed title with gradient fill, outline and offset shadow. */
+/** Big condensed title with a gradient fill, outline and offset shadow. */
 function drawTitle(ctx, W, H, title, subtitle, grade) {
   const sky = SKIES[grade] || SKIES.sunset;
   const margin = W * 0.045;

@@ -1,7 +1,7 @@
 // Vice Sunset Cover Studio — editor.
-// Owns state, the preview canvas, photo loading, panel pan/zoom, shot URL
-// modes (?shot=cover / ?shot=editor) and PNG export. The cover itself is
-// drawn by cover.js; this file only wires the UI around it.
+// Owns the state, the preview canvas, photo loading, panel pan/zoom, the
+// shot URL modes (?shot=cover / ?shot=editor) and PNG export. The cover
+// itself is drawn by cover.js; this file only wires the UI around it.
 
 import { EXPORT_SIZES, LAYOUTS, GRADES, drawCover, panelShapes } from './cover.js';
 
@@ -52,13 +52,13 @@ function loadImage(src) {
   });
 }
 
-/** Paint the preview canvas from the current state. */
 /** Set text only when the element exists (cover shot mode removes the UI). */
 function setText(id, text) {
   const el = $(id);
   if (el) el.textContent = text;
 }
 
+/** Paint the preview canvas from the current state. */
 function renderPreview() {
   const size = sizeOf(state.sizeId);
   if (previewCanvas.width !== size.w) previewCanvas.width = size.w;
