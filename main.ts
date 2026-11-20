@@ -1,26 +1,24 @@
-// main.ts — hands Vice Sunset Cover Studio in for gta6-cover-art-01.
+// Vice Sunset Cover Studio — entry program for make.fun's gta6-cover-art-01.
+// Copies app/ and screenshots/ into the output directory and writes
+// dossier.json with the kit's buildDossier.
 //
-// Node 22, standard library only. It copies app/ and screenshots/ from
-// beside this file into the output directory and writes dossier.json
-// with the vendored make.fun library.
-//
-// The grader runs this program as an unprivileged user on a read-only
-// filesystem with a writable output mount, so it must never delete the
-// output directory itself: it only clears the directory's contents, and
-// it makes children writable first, because copied files arrive
-// read-only and a second run could not remove them otherwise.
-//
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
-
+// The grader runs this as user 65534 on a read-only filesystem with a
+// writable output mount, twice, each time in a fresh sandbox. Two rules
+// follow from that and are the whole point of the helpers below:
+//   1. The output directory itself is never removed — only its contents.
+//      Removing the directory itself fails with EACCES on the read-only
+//      parent, so clearContents() empties it instead.
+//   2. Files copied into the output arrive read-only, so a second run
+//      cannot unlink them unless they are made writable first.
+//      makeWritableDeep() chmods every child before it is removed.
 import {
   chmodSync,
   cpSync,
   existsSync,
-  lstatSync,
   mkdirSync,
   readdirSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
@@ -30,40 +28,41 @@ import { buildDossier } from './vendor/makefun-app.ts';
 const here = fileURLToPath(new URL('.', import.meta.url));
 const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-// Remove one entry and everything under it, making each child writable
-// first so read-only copies from an earlier run do not block the removal.
-// A directory is made writable BEFORE its children are removed: deleting
-// a file needs write permission on its parent directory, not just on the
-// file itself. The entry itself is removed; the caller keeps the parent.
-function removeWritable(path: string): void {
-  const st = lstatSync(path);
+// Walk a path and give every directory and file write permission, so a
+// later rmSync can remove it even when it arrived read-only.
+function makeWritableDeep(path: string): void {
+  const st = statSync(path);
   if (st.isDirectory()) {
+    for (const entry of readdirSync(path)) makeWritableDeep(join(path, entry));
     chmodSync(path, 0o755);
-    for (const name of readdirSync(path)) removeWritable(join(path, name));
   } else {
     chmodSync(path, 0o644);
   }
-  rmSync(path, { recursive: true, force: true });
 }
 
-// Empty a directory without deleting the directory itself.
+// Remove everything inside a directory, never the directory itself.
 function clearContents(dir: string): void {
-  for (const name of readdirSync(dir)) removeWritable(join(dir, name));
+  for (const entry of readdirSync(dir)) {
+    const path = join(dir, entry);
+    makeWritableDeep(path);
+    rmSync(path, { recursive: true, force: true });
+  }
 }
 
 mkdirSync(out, { recursive: true });
 clearContents(out);
 cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
+mkdirSync(join(out, 'screenshots'), { recursive: true });
 if (existsSync(join(here, 'screenshots'))) {
-  cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
+  cpSync(join(here, 'screenshots'), join(out, 'screenshots'), {
+    recursive: true,
+  });
 }
 
 // The scorer's own caps (reference/gate.json): only text_max_bytes shapes
-// the bytes; the others refuse an entry the scorer would refuse (more
-// than 4 screenshots or one over 256 KiB; more than 993 files in app/
-// or 48 MiB of app files, in all, or a path under app/ over 1000 bytes:
-// app/ counts beside /output's own 1000-entry cap, its screenshots/ and
-// dossier.json).
+// the bytes; the others refuse an entry the scorer would refuse (more than
+// 4 screenshots or one over 256 KiB; more than 993 files in app/ or 48 MiB
+// of app files, in all, or a path under app/ over 1000 bytes).
 writeFileSync(
   join(out, 'dossier.json'),
   buildDossier(out, {
