@@ -1,18 +1,18 @@
-// Vice Sunset Cover Studio — tiny static dev server (Node 22, stdlib only).
-// Serves app/ on http://localhost:8080 so the entry can be tried locally.
-// Usage: node serve.ts [--port 8080]
-import { createReadStream, statSync } from 'node:fs';
+// Vice Sunset Cover Studio — tiny static file server for local previews.
+// Serves app/ at http://localhost:8080. Standard library only, no
+// dependencies, no network access beyond the local machine.
+//
+// Usage: node serve.ts   (or PORT=9000 node serve.ts)
 import { createServer } from 'node:http';
-import { extname, join, normalize, resolve, sep } from 'node:path';
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = resolve(fileURLToPath(new URL('./app', import.meta.url)));
-const args = process.argv.slice(2);
-const portIndex = args.indexOf('--port');
-const requested = portIndex === -1 ? 8080 : Number(args[portIndex + 1]);
-const port = Number.isInteger(requested) && requested > 0 && requested < 65536 ? requested : 8080;
+const here = dirname(fileURLToPath(import.meta.url));
+const root = join(here, 'app');
+const port = Number(process.env.PORT ?? 8080);
 
-const MIME = {
+const types: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8',
@@ -22,41 +22,27 @@ const MIME = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.ttf': 'font/ttf',
-  '.woff': 'font/woff',
   '.woff2': 'font/woff2',
-  '.txt': 'text/plain; charset=utf-8',
+  '.svg': 'image/svg+xml',
 };
 
-createServer((request, response) => {
-  const url = new URL(request.url ?? '/', 'http://localhost');
-  let pathname;
-  try {
-    pathname = decodeURIComponent(url.pathname);
-  } catch {
-    response.writeHead(400).end('bad request');
+const server = createServer((req, res) => {
+  const url = new URL(req.url ?? '/', 'http://localhost');
+  let path = decodeURIComponent(url.pathname);
+  if (path === '/') path = '/index.html';
+  const file = resolve(root, `.${path}`);
+  if (file !== root && !file.startsWith(`${root}/`)) {
+    res.writeHead(403);
+    res.end('forbidden');
     return;
   }
-  if (pathname.endsWith('/')) pathname += 'index.html';
-  const file = resolve(join(root, normalize(pathname)));
-  if (file !== root && !file.startsWith(root + sep)) {
-    response.writeHead(403).end('forbidden');
+  if (!existsSync(file) || !statSync(file).isFile()) {
+    res.writeHead(404);
+    res.end('not found');
     return;
   }
-  let size;
-  try {
-    const stats = statSync(file);
-    if (!stats.isFile()) throw new Error('not a file');
-    size = stats.size;
-  } catch {
-    response.writeHead(404).end('not found');
-    return;
-  }
-  response.writeHead(200, {
-    'content-type': MIME[extname(file).toLowerCase()] ?? 'application/octet-stream',
-    'content-length': size,
-    'cache-control': 'no-store',
-  });
-  createReadStream(file).pipe(response);
-}).listen(port, '127.0.0.1', () => {
-  console.log(`app/ is on http://localhost:${port}`);
+  res.writeHead(200, { 'content-type': types[extname(file)] ?? 'application/octet-stream' });
+  res.end(readFileSync(file));
 });
+
+server.listen(port, () => console.log(`serving app/ at http://localhost:${port}`));

@@ -1,11 +1,9 @@
 // Vice Sunset Cover Studio — editor.
-// Owns the state, the preview canvas, photo loading, panel pan/zoom, the
+// Owns the state, the preview canvas, photo loading, panel pan/zoom,
 // shot URL modes (?shot=cover / ?shot=editor) and PNG export. The cover
 // itself is drawn by cover.js; this file only wires the UI around it.
 
 import { EXPORT_SIZES, LAYOUTS, GRADES, drawCover, panelShapes } from './cover.js';
-
-'use strict';
 
 const $ = (id) => document.getElementById(id);
 const previewCanvas = $('preview-canvas');
@@ -14,7 +12,7 @@ const params = new URLSearchParams(location.search);
 
 /** The editor's whole state: one entry per panel, extras unused by a layout. */
 const state = {
-  layout: 'diagonal',
+  layout: 'sunset-stack',
   grade: 'sunset',
   title: 'Sunset Heist',
   subtitle: 'Vice Sunset Story',
@@ -67,7 +65,7 @@ function renderPreview() {
   setText('size-label', `${size.w} × ${size.h}`);
   setText('layout-badge', `${layoutLabel()} · ${gradeLabel()}`);
   const shapes = panelShapes(state.layout, size.w, size.h);
-  setText('panel-count', String(shapes.length));
+  setText('panel-count', `${shapes.length} panel${shapes.length === 1 ? '' : 's'}`);
   setText('panel-name', String(Math.min(state.selected, shapes.length - 1) + 1));
   const panel = state.panels[state.selected] || state.panels[0];
   const name = panel.src.startsWith('data:') ? 'your uploaded photo'
@@ -78,9 +76,7 @@ function renderPreview() {
   setText('zoom-value', `${Math.round((panel.zoom || 1) * 100)}%`);
 }
 
-/** Set a panel's photo from a URL (sample or data URL) and repaint.
- * Keeps the panel's pan/zoom: the crop the user (or the defaults) chose
- * still applies, and the renderer clamps it so the photo covers the panel. */
+/** Set a panel's photo from a URL (sample or data URL) and repaint. */
 async function setPanelPhoto(index, src) {
   const panel = state.panels[index];
   panel.img = await loadImage(src);

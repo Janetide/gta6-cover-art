@@ -1,16 +1,14 @@
 // Vice Sunset Cover Studio — entry program (Node 22, standard library only).
-// Stages app/ and screenshots/ into the output directory and writes
-// dossier.json there with buildDossier. Runs are deterministic: files are
-// copied in sorted order and nothing time-stamped or random is written, so
-// two runs produce byte-identical output.
+// Copies app/ and screenshots/ from beside this file into the output
+// directory and writes dossier.json with buildDossier. Two runs write
+// byte-identical output: no timestamps, no randomness, files copied as
+// they are, and the dossier is deterministic.
 //
-// The output directory itself is never removed. On the grader it is a
-// writable mount whose parent is read-only, so deleting the directory
-// itself fails with EACCES; only the things inside it are cleared. And
-// staged copies inherit the source tree's read-only modes, so each child
-// is made writable before it is removed — without write permission on a
-// directory, the entries inside it cannot be unlinked, and a second run
-// would fail on the leftovers of the first.
+// The output directory itself is never deleted: the grader mounts it as a
+// writable directory under a read-only filesystem, so removing it fails
+// with EACCES. Only its contents are removed, and every child is made
+// writable first, because files copied from a read-only repository
+// arrive read-only and a read-only directory cannot be emptied.
 //
 // Usage: MAKEFUN_OUTPUT_DIR=out node main.ts   (defaults to /output)
 import { chmodSync, cpSync, lstatSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -21,35 +19,34 @@ import { buildDossier } from './vendor/makefun-app.ts';
 const here = dirname(fileURLToPath(import.meta.url));
 const out = resolve(process.env.MAKEFUN_OUTPUT_DIR ?? '/output');
 
-// Recursively add owner-write to a tree so it can be removed. Symlinks
-// are left alone: unlinking a link needs no write permission on its target.
-function makeWritable(path) {
-  const st = lstatSync(path);
-  if (st.isSymbolicLink()) return;
-  if (st.isDirectory()) {
-    for (const child of readdirSync(path)) makeWritable(join(path, child));
+/** Make a path and everything under it writable, so it can be removed. */
+function makeWritable(path: string): void {
+  try {
+    const st = lstatSync(path);
+    if (st.isDirectory()) {
+      chmodSync(path, 0o700);
+      for (const name of readdirSync(path)) makeWritable(join(path, name));
+    } else {
+      chmodSync(path, 0o600);
+    }
+  } catch {
+    // A file we cannot chmod can still be removed while its parent is writable.
   }
-  chmodSync(path, (st.mode & 0o777) | 0o200);
 }
 
-// Make sure the output directory exists, then empty it without removing it.
-mkdirSync(out, { recursive: true });
-for (const child of readdirSync(out)) {
-  const p = join(out, child);
-  makeWritable(p);
-  rmSync(p, { recursive: true, force: true });
+/** Empty a directory without removing the directory itself. */
+function emptyDir(dir: string): void {
+  mkdirSync(dir, { recursive: true });
+  for (const name of readdirSync(dir)) {
+    const path = join(dir, name);
+    makeWritable(path);
+    rmSync(path, { recursive: true, force: true });
+  }
 }
 
-// Copy app/ and screenshots/ in deterministic (sorted) order.
+emptyDir(out);
 for (const name of ['app', 'screenshots']) {
-  const src = join(here, name);
-  const dest = join(out, name);
-  mkdirSync(dest, { recursive: true });
-  const entries = readdirSync(src, { withFileTypes: true }).sort((a, b) =>
-    (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
-  for (const entry of entries) {
-    cpSync(join(src, entry.name), join(dest, entry.name), { recursive: true });
-  }
+  cpSync(join(here, name), join(out, name), { recursive: true });
 }
 
 const dossier = buildDossier(out, {
