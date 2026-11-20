@@ -1,9 +1,9 @@
 // Vice Sunset Cover Studio — editor.
-// Owns the state, the preview canvas, photo loading, panel pan/zoom,
-// shot URL modes (?shot=cover / ?shot=editor) and PNG export. The cover
-// itself is drawn by cover.js; this file only wires the UI around it.
+// Owns the state, the preview canvas, photo loading, panel pan/zoom, shot
+// URL modes (?shot=cover / ?shot=editor) and PNG export. The cover itself
+// is drawn by cover.js; this file only wires the UI around it.
 
-import { EXPORT_SIZES, LAYOUTS, GRADES, drawCover, panelShapes } from './cover.js';
+import { EXPORT_SIZES, LAYOUTS, GRADES, drawCover, panelShapes, panelAt } from './cover.js';
 
 const $ = (id) => document.getElementById(id);
 const previewCanvas = $('preview-canvas');
@@ -12,10 +12,10 @@ const params = new URLSearchParams(location.search);
 
 /** The editor's whole state: one entry per panel, extras unused by a layout. */
 const state = {
-  layout: 'sunset-stack',
+  layout: 'hero-trio',
   grade: 'sunset',
   title: 'Sunset Heist',
-  subtitle: 'Vice Sunset Story',
+  subtitle: 'A Vice City story',
   sizeId: '1080x1080',
   selected: 0,
   panels: [
@@ -85,7 +85,7 @@ async function setPanelPhoto(index, src) {
 }
 
 /** Fill every panel with the selected panel's photo. */
-async function applyPhotoToAllPanels() {
+function applyPhotoToAllPanels() {
   const src = state.panels[state.selected].src;
   const img = state.panels[state.selected].img;
   for (const panel of state.panels) {
@@ -103,27 +103,6 @@ function handleUpload(file) {
   reader.readAsDataURL(file);
 }
 
-/** Ray-casting point-in-polygon test against a panel's polygon. */
-function pointInPoly(x, y, poly) {
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i, i += 1) {
-    const [xi, yi] = poly[i];
-    const [xj, yj] = poly[j];
-    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
-}
-
-/** Which panel (if any) contains canvas point x, y. */
-function panelAt(x, y) {
-  const size = sizeOf(state.sizeId);
-  const shapes = panelShapes(state.layout, size.w, size.h);
-  for (let i = shapes.length - 1; i >= 0; i -= 1) {
-    if (pointInPoly(x, y, shapes[i].poly)) return i;
-  }
-  return -1;
-}
-
 /** Convert a pointer event to canvas pixel coordinates. */
 function eventPoint(event) {
   const rect = previewCanvas.getBoundingClientRect();
@@ -137,11 +116,11 @@ let dragging = null;
 
 function onPointerDown(event) {
   const p = eventPoint(event);
-  const hit = panelAt(p.x, p.y);
-  if (hit < 0) return;
-  state.selected = hit;
   const size = sizeOf(state.sizeId);
   const shapes = panelShapes(state.layout, size.w, size.h);
+  const hit = panelAt(shapes, p.x, p.y);
+  if (hit < 0) return;
+  state.selected = hit;
   dragging = { panel: hit, lastX: p.x, lastY: p.y, rect: shapes[hit].rect };
   previewCanvas.setPointerCapture(event.pointerId);
   renderPreview();
@@ -167,7 +146,9 @@ function onPointerUp() {
 function onWheel(event) {
   event.preventDefault();
   const p = eventPoint(event);
-  const hit = panelAt(p.x, p.y);
+  const size = sizeOf(state.sizeId);
+  const shapes = panelShapes(state.layout, size.w, size.h);
+  const hit = panelAt(shapes, p.x, p.y);
   if (hit < 0) return;
   state.selected = hit;
   const panel = state.panels[hit];
@@ -202,14 +183,40 @@ async function exportPng() {
 
 /** Wire every control in the editor. */
 function wireControls() {
+  const layoutSelect = $('layout-select');
+  for (const layout of LAYOUTS) {
+    const option = document.createElement('option');
+    option.value = layout.id;
+    option.textContent = layout.label;
+    layoutSelect.appendChild(option);
+  }
+  layoutSelect.value = state.layout;
+  const gradeSelect = $('grade-select');
+  for (const grade of GRADES) {
+    const option = document.createElement('option');
+    option.value = grade.id;
+    option.textContent = grade.label;
+    gradeSelect.appendChild(option);
+  }
+  gradeSelect.value = state.grade;
+  const sizeRow = $('size-row');
+  for (const size of EXPORT_SIZES) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn small';
+    button.dataset.size = size.id;
+    button.textContent = size.label;
+    button.setAttribute('aria-pressed', String(size.id === state.sizeId));
+    sizeRow.appendChild(button);
+  }
   $('title-input').addEventListener('input', (e) => { state.title = e.target.value; renderPreview(); });
   $('subtitle-input').addEventListener('input', (e) => { state.subtitle = e.target.value; renderPreview(); });
-  $('layout-select').addEventListener('change', (e) => {
+  layoutSelect.addEventListener('change', (e) => {
     state.layout = e.target.value;
     state.selected = 0;
     renderPreview();
   });
-  $('grade-select').addEventListener('change', (e) => { state.grade = e.target.value; renderPreview(); });
+  gradeSelect.addEventListener('change', (e) => { state.grade = e.target.value; renderPreview(); });
   $('zoom-slider').addEventListener('input', (e) => {
     state.panels[state.selected].zoom = Number(e.target.value) / 100;
     renderPreview();
@@ -250,7 +257,7 @@ function wireControls() {
     dropzone.classList.remove('dragging');
   }));
   dropzone.addEventListener('drop', (e) => handleUpload(e.dataTransfer.files[0]));
-  $('size-row').addEventListener('click', (e) => {
+  sizeRow.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-size]');
     if (!btn) return;
     state.sizeId = btn.dataset.size;
@@ -317,16 +324,17 @@ function enterCoverShotMode() {
   previewCanvas.style.maxHeight = '100vh';
 }
 
-/** Self-test hook: export the current cover, check the PNG bytes, report. */
+/** Self-test hook: export every size, check the PNG bytes, report. */
 async function runExportSelfTest() {
-  const size = sizeOf(state.sizeId);
-  const blob = await renderPngBlob(state.sizeId);
-  const bytes = new Uint8Array(await blob.arrayBuffer());
-  const magic = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
-  const isPng = magic.every((b, i) => bytes[i] === b);
-  $('test-result').textContent = JSON.stringify({
-    testExport: true, isPng, bytes: bytes.length, w: size.w, h: size.h,
-  });
+  const pngMagic = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+  const sizes = [];
+  for (const size of EXPORT_SIZES) {
+    const blob = await renderPngBlob(size.id);
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    const isPng = pngMagic.every((b, i) => bytes[i] === b);
+    sizes.push({ size: size.id, isPng, bytes: bytes.length, w: size.w, h: size.h });
+  }
+  $('test-result').textContent = JSON.stringify({ testExport: true, sizes });
 }
 
 window.addEventListener('error', (event) => {
@@ -343,10 +351,10 @@ async function boot() {
   if (params.get('shot') === 'cover') enterCoverShotMode();
   renderPreview();
   try {
-    await document.fonts.load('400 100px Anton');
+    await document.fonts.load('400 100px "Bebas Neue"');
     await document.fonts.ready;
     renderPreview();
-  } catch { /* Anton is decorative; the Impact fallback still draws */ }
+  } catch { /* Bebas Neue is decorative; the sans fallback still draws */ }
   if (params.get('testExport') === '1') await runExportSelfTest();
   requestAnimationFrame(() => requestAnimationFrame(() => {
     window.__shotReady = true;

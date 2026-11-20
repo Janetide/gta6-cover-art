@@ -8,85 +8,98 @@
 </head>
 <body>
 <header class="app-header">
-  <h1>Vice Sunset Cover Studio</h1>
-  <p class="tagline">Turn any photo into a GTA-style sunset cover. Runs offline, your photos never leave the machine.</p>
+  <div class="brand">
+    <span class="brand-mark">VS</span>
+    <div>
+      <h1>Vice Sunset Cover Studio</h1>
+      <p class="tagline">Turn any photo into a sunset-drenched poster cover, offline.</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button id="export-btn" class="btn primary" type="button">Export PNG</button>
+  </div>
 </header>
 <main class="workspace">
   <section class="preview-pane">
-    <div id="dropzone" class="dropzone">
+    <div class="dropzone" id="dropzone">
       <canvas id="preview-canvas" width="1080" height="1080"></canvas>
-      <p class="drop-hint">Drop a photo here, or use the upload button</p>
+      <p class="drop-hint">Drop a photo here, or use Upload below</p>
     </div>
-    <p class="status-line"><span id="size-label">1080 × 1080</span> · <span id="layout-badge">Sunset Stack · Vice Sunset</span> · <span id="panel-count">3 panels</span> · panel <span id="panel-name">1</span> · <span id="photo-note">Photo: sample boulevard</span></p>
-    <p class="status-line">Zoom: <span id="zoom-value">100%</span></p>
+    <div class="preview-meta">
+      <span id="size-label">1080 × 1080</span>
+      <span id="layout-badge">Hero + Trio · Sunset</span>
+      <span id="panel-count">4 panels</span>
+    </div>
   </section>
   <aside class="controls">
     <section class="control-group">
-      <h2>Photo</h2>
-      <div class="button-row">
-        <button id="upload-btn" type="button">Upload a photo</button>
-        <input id="file-input" type="file" accept="image/*" hidden>
-        <button id="apply-all-btn" type="button">Use in every panel</button>
-      </div>
-      <div class="button-row">
-        <button id="sample-boulevard" type="button" aria-pressed="true">Sample: Boulevard</button>
-        <button id="sample-pier" type="button" aria-pressed="false">Sample: Pier</button>
-      </div>
-    </section>
-    <section class="control-group">
-      <h2>Cover</h2>
-      <label>Layout
-        <select id="layout-select">
-          <option value="sunset-stack">Sunset Stack</option>
-          <option value="diagonal">Diagonal Cut</option>
-          <option value="grid-four">Four Corners</option>
-          <option value="hero-side">Hero &amp; Strip</option>
-        </select>
-      </label>
-      <label>Grade
-        <select id="grade-select">
-          <option value="sunset">Vice Sunset</option>
-          <option value="neon">Neon Nights</option>
-          <option value="noir">Midnight Noir</option>
-          <option value="gold">Golden Hour</option>
-        </select>
-      </label>
-      <label>Title
+      <h2>Caption</h2>
+      <label class="field">
+        <span>Title</span>
         <input id="title-input" type="text" value="Sunset Heist" maxlength="40">
       </label>
-      <label>Subtitle
-        <input id="subtitle-input" type="text" value="Vice Sunset Story" maxlength="60">
+      <label class="field">
+        <span>Subtitle</span>
+        <input id="subtitle-input" type="text" value="A Vice City story" maxlength="60">
       </label>
     </section>
     <section class="control-group">
-      <h2>Size</h2>
-      <div id="size-row" class="button-row">
-        <button type="button" data-size="1080x1080" aria-pressed="true">1080 × 1080</button>
-        <button type="button" data-size="1080x1350" aria-pressed="false">1080 × 1350</button>
-        <button type="button" data-size="1920x1080" aria-pressed="false">1920 × 1080</button>
+      <h2>Look</h2>
+      <label class="field">
+        <span>Panels</span>
+        <select id="layout-select"></select>
+      </label>
+      <label class="field">
+        <span>Grade</span>
+        <select id="grade-select"></select>
+      </label>
+      <div class="field">
+        <span>Export size</span>
+        <div class="size-row" id="size-row"></div>
       </div>
     </section>
     <section class="control-group">
-      <h2>Selected panel</h2>
-      <label>Zoom
+      <h2>Photo</h2>
+      <div class="button-row">
+        <button id="upload-btn" class="btn" type="button">Upload photo</button>
+        <button id="apply-all-btn" class="btn" type="button">Use on all panels</button>
+      </div>
+      <input id="file-input" type="file" accept="image/*" hidden>
+      <div class="button-row">
+        <button id="sample-boulevard" class="btn small" type="button" aria-pressed="true">Boulevard</button>
+        <button id="sample-pier" class="btn small" type="button" aria-pressed="false">Pier</button>
+      </div>
+      <p class="photo-note" id="photo-note">Photo: sample boulevard</p>
+    </section>
+    <section class="control-group">
+      <h2>Selected panel <span id="panel-name">1</span></h2>
+      <p class="hint">Drag the cover to pan the photo. Scroll to zoom.</p>
+      <label class="field">
+        <span>Zoom <b id="zoom-value">100%</b></span>
         <input id="zoom-slider" type="range" min="100" max="300" value="100">
       </label>
       <div class="button-row">
-        <button id="zoom-out-btn" type="button">Zoom out</button>
-        <button id="zoom-in-btn" type="button">Zoom in</button>
-        <button id="recenter-btn" type="button">Recenter</button>
+        <button id="zoom-out-btn" class="btn small" type="button">− Zoom out</button>
+        <button id="zoom-in-btn" class="btn small" type="button">+ Zoom in</button>
+        <button id="recenter-btn" class="btn small" type="button">Recenter</button>
       </div>
-      <p class="hint">Drag a panel to pan it. Scroll over a panel to zoom. Click a panel to select it.</p>
     </section>
     <section class="control-group">
-      <button id="export-btn" type="button" class="export-btn">Export PNG</button>
+      <h2>How it works</h2>
+      <ol class="steps">
+        <li>Pick a sample or upload your own photo.</li>
+        <li>Click a panel, drag to crop, scroll to zoom.</li>
+        <li>Write your title, pick a layout and a grade.</li>
+        <li>Export PNG and share it.</li>
+      </ol>
     </section>
   </aside>
 </main>
 <footer class="app-footer">
-  <p>All art is drawn in your browser from your photos. No upload, no account, no network.</p>
+  <span>Offline by design — your photos never leave this machine.</span>
+  <span>Bebas Neue under the SIL Open Font License.</span>
 </footer>
-<p id="test-result"></p>
+<pre id="test-result"></pre>
 <script type="module" src="app.js"></script>
 </body>
 </html>
