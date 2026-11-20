@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vice Sunset Cover Studio — GTA-style cover art maker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="app-header">
+  <h1>Vice Sunset Cover Studio</h1>
+  <p>Turn your photo into GTA-poster-style cover art. Everything runs offline — photos never leave your machine.</p>
+</header>
+
+<main class="workspace">
+  <aside class="controls" aria-label="Cover controls">
+    <section class="card" aria-label="Photo">
+      <h2>1 · Photo</h2>
+      <div class="dropzone" id="dropzone">Drop a photo here, or choose a file — it goes into the selected panel.</div>
+      <div class="button-row" style="margin-top:10px">
+        <button type="button" id="upload-btn">Choose photo…</button>
+        <button type="button" id="apply-all-btn" title="Fill every panel with the selected panel's photo">Use in all panels</button>
+      </div>
+      <input type="file" id="file-input" accept="image/*" hidden>
+      <div class="thumbs" role="group" aria-label="Built-in sample photos">
+        <button type="button" id="sample-boulevard" aria-pressed="true">
+          <img src="samples/boulevard.jpg" alt="Sample photo: sunset boulevard">
+        </button>
+        <button type="button" id="sample-pier" aria-pressed="false">
+          <img src="samples/pier.jpg" alt="Sample photo: pier at sunset">
+        </button>
+      </div>
+      <p class="hint">Sample photos are AI-made kit images, free to use. Click a panel in the preview to select it, then drag to move the photo and use the zoom slider.</p>
+    </section>
+
+    <section class="card" aria-label="Selected panel">
+      <h2>2 · Selected panel</h2>
+      <p class="hint" style="margin:0 0 8px">Panel <strong id="panel-name">1</strong> of <span id="panel-count">3</span></p>
+      <label class="field"><span>Zoom <output id="zoom-value">100%</output></span>
+        <input type="range" id="zoom-slider" min="100" max="300" value="100" step="1">
+      </label>
+      <div class="button-row">
+        <button type="button" id="zoom-out-btn">− Zoom out</button>
+        <button type="button" id="zoom-in-btn">+ Zoom in</button>
+        <button type="button" id="recenter-btn">Centre photo</button>
+      </div>
+      <p class="hint">Drag the photo inside its panel to pan it. Scroll wheel over the preview zooms too.</p>
+    </section>
+
+    <section class="card" aria-label="Layout and grade">
+      <h2>3 · Layout &amp; grade</h2>
+      <label class="field"><span>Panel layout</span>
+        <select id="layout-select">
+          <option value="diagonal">Diagonal 3-panel split</option>
+          <option value="grid">Neon 2 × 2 grid</option>
+          <option value="hero">Hero + 2 small</option>
+          <option value="full">Single full bleed</option>
+        </select>
+      </label>
+      <label class="field"><span>Colour grade</span>
+        <select id="grade-select">
+          <option value="sunset">Sunset duotone</option>
+          <option value="neon">Neon magenta / cyan</option>
+          <option value="noir">Noir</option>
+          <option value="halftone">Halftone comic</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="card" aria-label="Caption">
+      <h2>4 · Caption</h2>
+      <label class="field"><span>Main caption</span>
+        <input type="text" id="title-input" value="Sunset Heist" maxlength="40" autocomplete="off">
+      </label>
+      <label class="field"><span>Subtitle / tagline</span>
+        <input type="text" id="subtitle-input" value="Vice Sunset Story" maxlength="60" autocomplete="off">
+      </label>
+    </section>
+
+    <section class="card" aria-label="Export">
+      <h2>5 · Export PNG</h2>
+      <div class="button-row" role="group" aria-label="Export size" id="size-row">
+        <button type="button" data-size="1080x1080" aria-pressed="true">1080 × 1080</button>
+        <button type="button" data-size="1080x1350" aria-pressed="false">1080 × 1350</button>
+        <button type="button" data-size="1920x1080" aria-pressed="false">1920 × 1080</button>
+      </div>
+      <p class="hint" style="margin:10px 0">The preview is the cover at the chosen size.</p>
+      <button type="button" class="primary" id="export-btn">Download PNG</button>
+      <p class="hint">One click, straight to your downloads — ready to post.</p>
+    </section>
+  </aside>
+
+  <section class="preview" aria-label="Live preview">
+    <div class="stage">
+      <canvas id="preview-canvas" class="cover-canvas" width="1080" height="1080"></canvas>
+    </div>
+    <div class="stage-caption">
+      <span>Live preview — <strong id="size-label">1080 × 1080</strong></span>
+      <span class="badge" id="layout-badge">Diagonal 3-panel · Sunset duotone</span>
+      <span id="photo-note">Photo: sample boulevard</span>
+    </div>
+  </section>
+</main>
+
+<footer class="app-footer">
+  An original design. No Rockstar Games logo, artwork or fonts — the display face is Anton (SIL Open Font License), all art is drawn in code, and photos stay on your machine.
+</footer>
+
+<pre id="test-result"></pre>
+<script type="module" src="app.js"></script>
+</body>
+</html>
