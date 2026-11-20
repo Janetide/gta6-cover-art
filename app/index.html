@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -7,99 +7,80 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="app-header">
-  <div class="brand">
-    <span class="brand-mark">VS</span>
-    <div>
-      <h1>Vice Sunset Cover Studio</h1>
-      <p class="tagline">Turn any photo into a sunset-drenched poster cover, offline.</p>
-    </div>
-  </div>
-  <div class="header-actions">
-    <button id="export-btn" class="btn primary" type="button">Export PNG</button>
-  </div>
+<header class="topbar">
+  <h1>Vice Sunset Cover Studio</h1>
+  <p class="tagline">Turn any photo into GTA-style cover art — offline, on your own machine.</p>
 </header>
-<main class="workspace">
-  <section class="preview-pane">
-    <div class="dropzone" id="dropzone">
-      <canvas id="preview-canvas" width="1080" height="1080"></canvas>
-      <p class="drop-hint">Drop a photo here, or use Upload below</p>
-    </div>
-    <div class="preview-meta">
-      <span id="size-label">1080 × 1080</span>
-      <span id="layout-badge">Hero + Trio · Sunset</span>
-      <span id="panel-count">4 panels</span>
-    </div>
+
+<main class="editor">
+  <section class="stage" id="stage">
+    <canvas id="preview" width="1080" height="1080"></canvas>
+    <p class="hint">Click a panel to select it · drag to pan · scroll to zoom · drop a photo anywhere here</p>
+    <pre id="test-result"></pre>
   </section>
-  <aside class="controls">
-    <section class="control-group">
-      <h2>Caption</h2>
-      <label class="field">
-        <span>Title</span>
-        <input id="title-input" type="text" value="Sunset Heist" maxlength="40">
-      </label>
-      <label class="field">
-        <span>Subtitle</span>
-        <input id="subtitle-input" type="text" value="A Vice City story" maxlength="60">
-      </label>
-    </section>
-    <section class="control-group">
-      <h2>Look</h2>
-      <label class="field">
-        <span>Panels</span>
-        <select id="layout-select"></select>
-      </label>
-      <label class="field">
-        <span>Grade</span>
-        <select id="grade-select"></select>
-      </label>
-      <div class="field">
-        <span>Export size</span>
-        <div class="size-row" id="size-row"></div>
-      </div>
-    </section>
-    <section class="control-group">
+
+  <aside class="toolbar">
+    <section class="group">
       <h2>Photo</h2>
-      <div class="button-row">
-        <button id="upload-btn" class="btn" type="button">Upload photo</button>
-        <button id="apply-all-btn" class="btn" type="button">Use on all panels</button>
+      <div class="row">
+        <button type="button" id="upload-btn">Upload a photo…</button>
+        <input type="file" id="file-input" accept="image/*" multiple hidden>
       </div>
-      <input id="file-input" type="file" accept="image/*" hidden>
-      <div class="button-row">
-        <button id="sample-boulevard" class="btn small" type="button" aria-pressed="true">Boulevard</button>
-        <button id="sample-pier" class="btn small" type="button" aria-pressed="false">Pier</button>
+      <div class="row">
+        <button type="button" id="sample-boulevard">Sample: Boulevard</button>
+        <button type="button" id="sample-pier">Sample: Pier</button>
       </div>
-      <p class="photo-note" id="photo-note">Photo: sample boulevard</p>
     </section>
-    <section class="control-group">
-      <h2>Selected panel <span id="panel-name">1</span></h2>
-      <p class="hint">Drag the cover to pan the photo. Scroll to zoom.</p>
-      <label class="field">
-        <span>Zoom <b id="zoom-value">100%</b></span>
-        <input id="zoom-slider" type="range" min="100" max="300" value="100">
+
+    <section class="group">
+      <h2>Layout</h2>
+      <div class="row wrap" id="layout-row"></div>
+    </section>
+
+    <section class="group">
+      <h2>Colour grade</h2>
+      <div class="row wrap" id="grade-row"></div>
+    </section>
+
+    <section class="group">
+      <h2>Caption</h2>
+      <label class="field">Title
+        <input type="text" id="title-input" maxlength="24" autocomplete="off">
       </label>
-      <div class="button-row">
-        <button id="zoom-out-btn" class="btn small" type="button">− Zoom out</button>
-        <button id="zoom-in-btn" class="btn small" type="button">+ Zoom in</button>
-        <button id="recenter-btn" class="btn small" type="button">Recenter</button>
+      <label class="field">Subtitle
+        <input type="text" id="subtitle-input" maxlength="48" autocomplete="off">
+      </label>
+    </section>
+
+    <section class="group">
+      <h2 id="panel-label">Panel 1</h2>
+      <div class="row">
+        <button type="button" id="zoom-out">−</button>
+        <input type="range" id="zoom-slider" min="1" max="3" step="0.05" value="1">
+        <button type="button" id="zoom-in">+</button>
+        <span id="zoom-value">1.00×</span>
+      </div>
+      <div class="row">
+        <button type="button" id="recenter">Recentre photo</button>
       </div>
     </section>
-    <section class="control-group">
-      <h2>How it works</h2>
-      <ol class="steps">
-        <li>Pick a sample or upload your own photo.</li>
-        <li>Click a panel, drag to crop, scroll to zoom.</li>
-        <li>Write your title, pick a layout and a grade.</li>
-        <li>Export PNG and share it.</li>
-      </ol>
+
+    <section class="group">
+      <h2>Size</h2>
+      <div class="row wrap" id="size-row"></div>
+    </section>
+
+    <section class="group">
+      <h2>Export</h2>
+      <div class="row">
+        <button type="button" id="export-btn" class="primary">Export PNG</button>
+        <button type="button" id="export-all-btn">Export all three sizes</button>
+      </div>
+      <p class="note">Exports a PNG at the size above, ready to post. Your photos never leave this machine.</p>
     </section>
   </aside>
 </main>
-<footer class="app-footer">
-  <span>Offline by design — your photos never leave this machine.</span>
-  <span>Bebas Neue under the SIL Open Font License.</span>
-</footer>
-<pre id="test-result"></pre>
+
 <script type="module" src="app.js"></script>
 </body>
 </html>

@@ -1,203 +1,216 @@
-/* Vice Sunset Cover Studio — editor styles. Dark chrome, warm accents. */
 @font-face {
-  font-family: 'Bebas Neue';
-  src: url('fonts/BebasNeue-Regular.ttf') format('truetype');
-  font-weight: 400;
+  font-family: 'Oswald';
+  src: url('fonts/Oswald[wght].ttf') format('truetype');
+  font-weight: 200 700;
   font-style: normal;
   font-display: swap;
 }
 
-:root {
-  --bg: #14101c;
-  --panel: #1e1828;
-  --panel-2: #261e33;
-  --line: #3a2f4d;
-  --text: #f5efe6;
-  --muted: #b8a9c9;
-  --accent: #ff8a3d;
-  --accent-2: #ff5e78;
-  --good: #39d5a5;
-}
-
 * { box-sizing: border-box; }
 
-body {
+html, body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  min-height: 100vh;
+  padding: 0;
+  background: #12081f;
+  color: #f5efe6;
+  font-family: 'Oswald', 'Arial Narrow', system-ui, sans-serif;
 }
 
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 20px;
-  background: linear-gradient(90deg, #2b1238, #4a1530 55%, #7a2a12);
-  border-bottom: 2px solid var(--accent);
+.topbar {
+  padding: 18px 28px 10px;
+  border-bottom: 1px solid #3a2358;
 }
 
-.brand { display: flex; align-items: center; gap: 12px; }
-
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
-  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
-  font-size: 24px;
-  letter-spacing: 1px;
-}
-
-.brand h1 {
+.topbar h1 {
   margin: 0;
-  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
-  font-size: 28px;
-  letter-spacing: 2px;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: #ffb347;
 }
 
-.tagline { margin: 2px 0 0; color: #ffd9b0; font-size: 13px; }
-
-.btn {
-  border: 1px solid var(--line);
-  background: var(--panel-2);
-  color: var(--text);
-  border-radius: 8px;
-  padding: 9px 14px;
-  font-size: 14px;
-  cursor: pointer;
+.tagline {
+  margin: 4px 0 0;
+  color: #cbb8e8;
+  font-size: 15px;
+  font-weight: 400;
 }
 
-.btn:hover { border-color: var(--accent); }
-.btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: none; font-weight: 700; }
-.btn.small { padding: 7px 10px; font-size: 13px; }
-.btn[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: 1px; }
-
-.workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 330px;
-  gap: 18px;
-  padding: 18px 20px;
-  align-items: start;
+.editor {
+  display: flex;
+  gap: 24px;
+  padding: 20px 28px 28px;
+  align-items: flex-start;
 }
 
-.preview-pane { min-width: 0; }
-
-.dropzone {
-  position: relative;
-  background: #0c0912;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 10px;
+.stage {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: center;
 }
 
-.dropzone.dragging { outline: 3px dashed var(--accent); outline-offset: -3px; }
-
-#preview-canvas {
-  display: block;
-  width: 100%;
+#preview {
+  max-width: 100%;
+  max-height: calc(100vh - 190px);
+  width: auto;
   height: auto;
-  max-height: 78vh;
-  object-fit: contain;
+  background: #000;
+  border: 1px solid #3a2358;
   border-radius: 6px;
   cursor: grab;
   touch-action: none;
 }
 
-#preview-canvas:active { cursor: grabbing; }
+#preview:active { cursor: grabbing; }
 
-.drop-hint {
-  position: absolute;
-  left: 50%;
-  top: 18px;
-  transform: translateX(-50%);
-  margin: 0;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(12, 9, 18, 0.75);
-  color: #ffe1c2;
-  font-size: 12px;
-  pointer-events: none;
+.stage.dropping #preview {
+  outline: 3px dashed #ffb347;
+  outline-offset: 4px;
 }
 
-.preview-meta {
-  display: flex;
-  gap: 16px;
-  padding: 10px 4px 0;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.controls { display: flex; flex-direction: column; gap: 14px; }
-
-.control-group {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px;
-}
-
-.control-group h2 { margin: 0 0 10px; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; color: #ffd9b0; }
-
-.field { display: block; margin-bottom: 10px; }
-.field > span { display: block; margin-bottom: 5px; color: var(--muted); font-size: 13px; }
-.field input[type="text"], .field select {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  background: #120e1a;
-  color: var(--text);
+.hint {
+  color: #9d86bd;
   font-size: 14px;
-}
-.field input[type="range"] { width: 100%; accent-color: var(--accent); }
-
-.button-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
-
-.size-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.size-row .btn[aria-pressed="true"] { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: none; }
-
-.photo-note, .hint { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
-
-.steps { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.6; }
-
-.app-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 20px 18px;
-  color: var(--muted);
-  font-size: 12px;
+  margin: 10px 0 0;
 }
 
 #test-result {
-  margin: 0 20px 18px;
-  padding: 10px;
-  background: #0c0912;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  color: var(--good);
-  font-size: 12px;
+  display: none;
+  text-align: left;
+  background: #0d0d0d;
+  color: #8dff9e;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 13px;
   white-space: pre-wrap;
-  word-break: break-word;
 }
-#test-result:empty { display: none; }
 
-/* ?shot=cover: only the cover, no editor chrome. */
-body.shot-cover { background: #000; }
-body.shot-cover .app-header,
-body.shot-cover .controls,
-body.shot-cover .app-footer,
-body.shot-cover .drop-hint,
-body.shot-cover .preview-meta,
-body.shot-cover #test-result { display: none; }
-body.shot-cover .workspace { display: block; padding: 0; }
-body.shot-cover .preview-pane { margin: 0; }
-body.shot-cover .dropzone { border: none; border-radius: 0; padding: 0; background: #000; }
-body.shot-cover #preview-canvas { max-height: 100vh; width: 100vw; height: 100vh; object-fit: contain; border-radius: 0; }
+.toolbar {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.group {
+  background: #1c0b2e;
+  border: 1px solid #3a2358;
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.group h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #e879f9;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.row:first-child { margin-top: 0; }
+.row.wrap { flex-wrap: wrap; }
+
+button {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: #f5efe6;
+  background: #2c1547;
+  border: 1px solid #5b3a86;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+button:hover { background: #3a1d5e; }
+button.active {
+  background: #ffb347;
+  border-color: #ffb347;
+  color: #1c0b2e;
+}
+
+button.primary {
+  background: #ff2e88;
+  border-color: #ff2e88;
+  font-weight: 600;
+}
+
+button.primary:hover { background: #ff4d9a; }
+
+.field {
+  display: block;
+  font-size: 13px;
+  color: #cbb8e8;
+  margin-top: 8px;
+}
+
+.field input[type="text"] {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 15px;
+  color: #f5efe6;
+  background: #12081f;
+  border: 1px solid #5b3a86;
+  border-radius: 6px;
+}
+
+input[type="range"] {
+  flex: 1 1 auto;
+  accent-color: #ffb347;
+}
+
+#zoom-value {
+  min-width: 52px;
+  text-align: right;
+  font-size: 14px;
+  color: #ffb347;
+}
+
+.note {
+  color: #9d86bd;
+  font-size: 13px;
+  margin: 10px 0 0;
+}
+
+/* Cover-only mode: the page is just the cover, edge to edge. */
+body.shot-cover .topbar,
+body.shot-cover .toolbar,
+body.shot-cover .hint {
+  display: none;
+}
+
+body.shot-cover {
+  background: #000;
+}
+
+body.shot-cover .editor {
+  padding: 0;
+  gap: 0;
+}
+
+body.shot-cover .stage {
+  width: 100vw;
+  height: 100vh;
+}
+
+body.shot-cover #preview {
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
+  border: 0;
+  border-radius: 0;
+}
